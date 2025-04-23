@@ -4,28 +4,27 @@ Ce projet permet d'analyser des comportements financiers et de détecter des ano
 
 ## Structure du Projet
 
-```
 PROJET KMEANS/
-│
-├── data/                          # Dossier contenant les données
-│
-├── functions/                     # Modules fonctionnels
-│   ├── apply_kmeans.py            # Application de l'algorithme K-means
-│   ├── console_utils.py           # Utilitaires pour l'interface console
-│   ├── detect_anomalies.py        # Fonctions de détection d'anomalies
-│   ├── load_data.py               # Chargement des données
-│   ├── normalize_features.py      # Normalisation des caractéristiques
-│   ├── plot_clusters.py           # Visualisation des clusters
-│   ├── select_features.py         # Sélection des caractéristiques
-│   └── threshold_utils.py         # Utilitaires de définition des seuils
-│
-├── report/                        # Dossier contenant les rapports
-├   ├── Rapport Projet Kmeans....      # Rapport du projet (PDF)
-│
-├── main.py                        # Point d'entrée du programme
-├── README.md                      # Ce fichier
-├── requirements.txt               # Dépendances du projet
-```
+├── data/
+│   └── transactions.csv      # Fichier CSV contenant les données de transactions
+├── functions/                # Dossier contenant les fonctions utilitaires
+│   ├── apply_kmeans.py       # Fonction pour appliquer l'algorithme K-means
+│   ├── cluster_analysis.py   # Analyse des clusters
+│   ├── console_utils.py      # Fonctions utilitaires pour l'interface console
+│   ├── detect_anomalies.py   # Détection d'anomalies dans les clusters
+│   ├── load_data.py          # Chargement des données
+│   ├── normalize_features.py  # Normalisation des caractéristiques
+│   ├── plot_clusters.py       # Visualisation des clusters
+│   ├── select_features.py     # Sélection des caractéristiques
+│   └── threshold_utils.py     # Utilitaires pour les seuils
+├── report/                    # Dossier contenant les rapports et visualisations
+│   ├── clustering_analysis.png
+│   ├── clustering_plot.png
+│   ├── distinctive_features.png
+│   └── Rapport Projet Kmeans.pdf
+├── main.py                     # Point d'entrée du programme
+├── README.md                   # Ce fichier
+└── requirements.txt            # Fichier contenant les dépendances nécessaires
 
 ## Installation
 
@@ -56,7 +55,7 @@ pip install -r requirements.txt
 
 ## Utilisation
 
-Pour lancer le programme d'analyse:
+Pour lancer le programme, assurez-vous que vous êtes dans l'environnement virtuel et exécutez le fichier `main.py`:
 
 ```bash
 python main.py
@@ -64,7 +63,7 @@ python main.py
 
 ### Programme Interactif
 
-⚠️ **Attention**: Ce programme est interactif et nécessite des actions de l'utilisateur à différentes étapes de l'analyse.
+⚠️ **Attention**: Ce programme est interactif et nécessite des actions de l'utilisateur à différentes étapes.
 
 1. À chaque étape majeure, le programme vous demandera de confirmer pour continuer.
 2. Certaines visualisations nécessitent que vous les fermiez manuellement pour passer à l'étape suivante.
@@ -75,10 +74,10 @@ python main.py
 2. Exploration et visualisation des caractéristiques
 3. Application de l'algorithme K-means
 4. Analyse des clusters et détection d'anomalies
-5. Génération de rapports et recommandations
+5. Visualisation
 
 À chaque étape, suivez les instructions affichées dans la console.
 
 ## Rapport
 
-Un rapport détaillé du projet est disponible dans le fichier "Rapport Projet Kmeans...." à la racine dans le Dossier report.
+Un rapport détaillé du projet est disponible dans le fichier "Rapport Projet Kmeans...." dans le Dossier report.
