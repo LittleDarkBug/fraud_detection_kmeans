@@ -17,6 +17,7 @@ def create_header():
         "[yellow]Algorithme K-means pour l'identification de comportements inhabituels[/yellow]",
         border_style="blue", padding=(1, 2)
     ))
+    console.print("\n[bold]Ce programme s'execute etape par etape, pour chaque etape, appuyez sur [bold red]Entrée[/bold red] pour continuer.[/bold]")
 
 def clear_console():
     """
@@ -108,9 +109,9 @@ def format_cluster_table(features_df, cluster_labels):
         
     return table
 
-def format_anomalies_table(features_df, cluster_labels, anomalies, sample_size=5):
+def format_anomalies_table(features_df, cluster_labels, anomalies, sample_size=6):
     """
-    Creates a stylized table with anomaly samples.
+    Creates a stylized table with anomaly samples, ensuring at least one from each cluster if possible.
     
     Args:
         features_df: DataFrame with the selected features
@@ -128,18 +129,41 @@ def format_anomalies_table(features_df, cluster_labels, anomalies, sample_size=5
     table.add_column("ID", style="dim")
     table.add_column("Cluster", justify="center")
     
-    # Columns for each feature
     for column in features_df.columns:
         table.add_column(column, justify="right")
     
-    # Add a column for deviation
     table.add_column("Déviation moyenne", justify="right")
     
-    # Select a sample of anomalies
-    sample_size = min(sample_size, len(anomalies))
-    sample_indices = np.random.choice(anomalies, sample_size, replace=False)
+    clusters_with_anomalies = {}
+    for idx in anomalies:
+        cluster = cluster_labels[idx]
+        if cluster not in clusters_with_anomalies:
+            clusters_with_anomalies[cluster] = []
+        clusters_with_anomalies[cluster].append(idx)
     
-    for idx in sample_indices:
+    # Select one anomaly from each cluster first
+    selected_indices = []
+    for cluster in sorted(clusters_with_anomalies.keys()):
+        selected_indices.append(np.random.choice(clusters_with_anomalies[cluster], 1)[0])
+    
+    # If we need more samples, select randomly from the remaining anomalies
+    remaining_count = sample_size - len(selected_indices)
+    if remaining_count > 0:
+        remaining_anomalies = [idx for idx in anomalies if idx not in selected_indices]
+        
+        if len(remaining_anomalies) > 0:
+            additional_samples = np.random.choice(
+                remaining_anomalies, 
+                min(remaining_count, len(remaining_anomalies)), 
+                replace=False
+            )
+            selected_indices.extend(additional_samples)
+    
+
+    np.random.shuffle(selected_indices)
+    
+
+    for idx in selected_indices:
         cluster = cluster_labels[idx]
         transaction = features_df.iloc[idx]
         
@@ -154,7 +178,7 @@ def format_anomalies_table(features_df, cluster_labels, anomalies, sample_size=5
             deviation = ((value - mean) / mean * 100) if mean != 0 else float('inf')
             deviations.append(deviation)
             
-            # Format the value with color code based on deviation
+     
             if abs(deviation) > 100:
                 values.append(f"[bold red]{value:.2f}[/bold red]")
             elif abs(deviation) > 50:
@@ -162,10 +186,8 @@ def format_anomalies_table(features_df, cluster_labels, anomalies, sample_size=5
             else:
                 values.append(f"{value:.2f}")
         
-        # Calculate average deviation
-        avg_deviation = sum(abs(d) for d in deviations if d != float('inf')) / len([d for d in deviations if d != float('inf')])
-        
-        # Add row to the table
+        avg_deviation = sum(abs(d) for d in deviations if d != float('inf')) / len([d for d in deviations if d != float('inf')])        
+  
         table.add_row(
             f"{idx}",
             f"[bold]C{cluster}[/bold]",
@@ -262,3 +284,75 @@ def display_cluster_analysis(features_df, cluster_labels):
         console.print(f"\n[bold]Cluster {cluster}[/bold] ({len(cluster_data)} transactions):")
         for column in features_df.columns:
             console.print(f"  {column}: {cluster_data[column].mean():.4f}")
+
+
+def update_and_display_anomaly_stats(cluster_info, kmeans_model, normalized_data, anomalies):
+    """ Update cluster info with anomaly statistics and build display table
+    Args:
+        cluster_info: List of dictionaries with cluster information
+        kmeans_model: Trained KMeans model
+        normalized_data: Normalized feature array
+        anomalies: Array of indices of anomalous transactions
+    Returns:
+        cluster_info: Updated list of dictionaries with cluster information
+        threshold_table: Rich Table object containing updated cluster information
+    """
+
+    # Update anomaly stats for each cluster
+    for info in cluster_info:
+        cluster_id = info['id']
+        cluster_mask = (kmeans_model.labels_ == cluster_id)
+        anomaly_mask = np.isin(np.arange(len(normalized_data)), anomalies)
+        cluster_anomalies = np.sum(cluster_mask & anomaly_mask)
+        info['anomalies'] = cluster_anomalies
+        info['anomalies_percent'] = cluster_anomalies / info['size'] if info['size'] > 0 else 0
+    
+    # Build display table
+    threshold_table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
+    threshold_table.add_column("Cluster", style="dim")
+    threshold_table.add_column("Taille", justify="right")
+    threshold_table.add_column("Seuil", justify="right")
+    threshold_table.add_column("Anomalies", justify="right")
+    threshold_table.add_column("% Anomalies", justify="right")
+    
+    for info in cluster_info:
+        threshold_table.add_row(
+            f"{info['id']}", 
+            f"{info['size']}", 
+            f"{info['threshold']:.4f}", 
+            f"{info['anomalies']}", 
+            f"{info['anomalies_percent']:.2%}"
+        )
+    
+    return cluster_info, threshold_table
+
+
+def format_threshold_table(cluster_info):
+    """
+    Create a formatted table displaying anomaly thresholds for each cluster.
+    
+    Parameters:
+        cluster_info (list): List of dictionaries containing cluster information
+        
+    Returns:
+        Table: Rich Table object containing formatted threshold information
+    """
+    threshold_table = Table(show_header=True, header_style="bold magenta", box=box.ROUNDED)
+    threshold_table.add_column("Cluster", style="dim")
+    threshold_table.add_column("Taille", justify="right")
+    threshold_table.add_column("Q1", justify="right")
+    threshold_table.add_column("Q3", justify="right")
+    threshold_table.add_column("IQR", justify="right")
+    threshold_table.add_column("Seuil", justify="right")
+    
+    for info in cluster_info:
+        threshold_table.add_row(
+            f"{info['id']}", 
+            f"{info['size']}", 
+            f"{info['q1']:.4f}", 
+            f"{info['q3']:.4f}", 
+            f"{info['iqr']:.4f}", 
+            f"{info['threshold']:.4f}"
+        )
+    
+    return threshold_table
