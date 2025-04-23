@@ -4,6 +4,7 @@ Ce projet permet d'analyser des comportements financiers et de détecter des ano
 
 ## Structure du Projet
 
+```
 PROJET KMEANS/
 ├── data/
 │   └── transactions.csv      # Fichier CSV contenant les données de transactions
@@ -25,6 +26,7 @@ PROJET KMEANS/
 ├── main.py                     # Point d'entrée du programme
 ├── README.md                   # Ce fichier
 └── requirements.txt            # Fichier contenant les dépendances nécessaires
+```
 
 ## Installation
 
