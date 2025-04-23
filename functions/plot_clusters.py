@@ -1,3 +1,4 @@
+from matplotlib import cm
 from matplotlib.gridspec import GridSpec
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,6 +17,8 @@ def plot_clusters(data: np.ndarray, labels: np.ndarray, anomalies: np.ndarray, d
     reduced_data = pca.fit_transform(data)
     
     plt.figure(figsize=(12, 8))
+    cmap = cm.get_cmap('viridis')
+    cluster_colors = [cmap(i/6) for i in range(6)]
     
     for cluster_label in np.unique(labels):
  
@@ -26,7 +29,8 @@ def plot_clusters(data: np.ndarray, labels: np.ndarray, anomalies: np.ndarray, d
                 cluster_points[:, 0], 
                 cluster_points[:, 1], 
                 label=f'Cluster {cluster_label}',
-                alpha=0.6
+                alpha=0.6,
+                color=cluster_colors[cluster_label],
             )
     
     # Highlight anomalies in red
@@ -79,70 +83,6 @@ def plot_clusters(data: np.ndarray, labels: np.ndarray, anomalies: np.ndarray, d
         
     plt.tight_layout()
     plt.savefig("./report/clustering_analysis.png")
-    plt.show()
-
-
-
-def plot_distance_distributions(model, thresholds_iqr, distances, thresholds_adaptive=None):
-    """
-    Plot distance distributions for each cluster with thresholds.
-    
-    Parameters:
-        model: Trained KMeans model
-        thresholds_iqr: Dictionary mapping cluster ID to IQR threshold
-        thresholds_adaptive: Dictionary mapping cluster ID to adaptive threshold (optional)
-        distances: Pre-calculated distances (optional)
-    """
-    import matplotlib.pyplot as plt
-    import numpy as np
-    from matplotlib.gridspec import GridSpec
-    
-    centers = model.cluster_centers_
-    labels = model.labels_
-    n_clusters = len(centers)
-    
-    n_rows = (n_clusters + 1) // 2
-    fig = plt.figure(figsize=(14, n_rows * 4))
-    gs = GridSpec(n_rows, 2, figure=fig)
-    
-    # Create histograms for each cluster
-    for cluster_id in range(n_clusters):
-        cluster_mask = (labels == cluster_id)
-        cluster_distances = distances[cluster_mask]
-        
-        if len(cluster_distances) == 0:
-            continue
-            
-        ax = fig.add_subplot(gs[cluster_id // 2, cluster_id % 2])
-        bins = np.linspace(0, max(cluster_distances) * 1.1, 30)
-        ax.hist(cluster_distances, bins=bins, alpha=0.7, color='skyblue')
-        
-        # Add threshold lines
-        iqr_threshold = thresholds_iqr[cluster_id] if isinstance(thresholds_iqr, dict) else thresholds_iqr
-        ax.axvline(x=iqr_threshold, color='red', linestyle='--', 
-                   label='IQR Threshold', linewidth=2)
-        
-        # Add adaptive threshold if provided
-        if thresholds_adaptive is not None:
-            adaptive_threshold = thresholds_adaptive[cluster_id]
-            ax.axvline(x=adaptive_threshold, color='green', linestyle='-.', 
-                       label='Adaptive Threshold', linewidth=2)
-        
-        median = np.median(cluster_distances)
-        ax.axvline(x=median, color='navy', linestyle='-', 
-                   label='Median', linewidth=1)
-        
-        # Mark anomalies
-        ax.set_title(f'Cluster {cluster_id} Distance Distribution', fontsize=12)
-        ax.set_xlabel('Distance to Cluster Center', fontsize=10)
-        ax.set_ylabel('Frequency', fontsize=10)
-        
-        # Only include legend on the first plot
-        if cluster_id == 0:
-            ax.legend(loc='best')
-    
-    plt.tight_layout()
-    plt.savefig("./report/distance_distributions.png")
     plt.show()
 
 
