@@ -3,7 +3,7 @@ from sklearn.cluster import KMeans
 
 def calculate_thresholds(data: np.ndarray, model: KMeans, iqr_multiplier: float = 1.5) -> dict:
     """
-    Calculate anomaly thresholds for each cluster using IQR.
+    Calculate anomaly thresholds for each cluster using Tukey (IQR).
     
     :param data: Normalized data
     :param model: Trained KMeans model

@@ -60,13 +60,13 @@ def main():
 
     
     # Step 5: Anomaly detection
-    display_step_header(5, "Détection des anomalies avec seuil dynamique par cluster")
+    display_step_header(5, "Détection des anomalies avec seuil dynamique par cluster en utilisant la méthode de Tukey (IQR)")
     with create_progress_context() as progress:
         task = progress.add_task("[cyan]Calcul des seuils d'anomalies par cluster...", total=1)
         thresholds, cluster_info = calculate_thresholds(normalized_data, kmeans_model)
         progress.update(task, completed=1)
 
-        console.print("\n[bold cyan]Seuils d'anomalies par cluster (IQR):[/bold cyan]")
+        console.print("\n[bold cyan]Seuils d'anomalies par cluster méthode de Tukey (IQR):[/bold cyan]")
         console.print(format_threshold_table(cluster_info))
         
         # Detect anomalies
